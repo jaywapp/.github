@@ -1,0 +1,45 @@
+name: Telegram Notify
+
+on:
+  workflow_call:
+    inputs:
+      project_name:
+        required: true
+        type: string
+      run_url:
+        required: true
+        type: string
+      version:
+        required: false
+        type: string
+        default: ''
+      success:
+        required: true
+        type: boolean
+      failure_reason:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      TELEGRAM_BOT_TOKEN:
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram
+        run: |
+          if [ "${{ inputs.success }}" = "true" ]; then
+            TEXT="✅ ${{ inputs.project_name }}
+🔗 ${{ inputs.run_url }}
+⚠️ ${{ inputs.version }}"
+          else
+            TEXT="❌ ${{ inputs.project_name }}
+🔗 ${{ inputs.run_url }}
+❓ ${{ inputs.failure_reason }}"
+          fi
+          curl -s -X POST \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            --data-urlencode "chat_id=8738875192" \
+            --data-urlencode "text=$TEXT"
